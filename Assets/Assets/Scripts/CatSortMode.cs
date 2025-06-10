@@ -13,6 +13,8 @@ public class CatSortMode : MonoBehaviour
     [SerializeField] private GameObject levelCompletePanel;
     [SerializeField] private Button nextLevelButton;
     [SerializeField] private Button exitButton;
+    [SerializeField] private int leftShelves = 2;
+    [SerializeField] private int rightShelves = 2;
     private List<Shelf> shelves = new List<Shelf>();
     private AudioVibrationManager audioVibrationManager;
 
