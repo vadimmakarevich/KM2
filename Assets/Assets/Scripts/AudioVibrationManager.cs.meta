@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 116deeb89d7915847a1425e7f2d27b36
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - buttonClickSound: {instanceID: 0}
+  - explosionSound: {instanceID: 0}
+  - menuMusic: {instanceID: 0}
+  - survivalModeMusic: {instanceID: 0}
+  - timerModeMusic: {instanceID: 0}
+  - timerTickSound: {instanceID: 0}
+  - mergeSound: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
