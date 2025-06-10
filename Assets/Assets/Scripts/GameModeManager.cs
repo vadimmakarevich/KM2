@@ -61,6 +61,7 @@ public class GameModeManager : MonoBehaviour
     public CatSortMode catSortMode;
     public Button catSortStartButton;
 
+    public Button undoButton;
     [Header("Level Complete UI")]
     public GameObject levelCompletePanel;
     public TextMeshProUGUI levelCompleteScoreText;
@@ -196,6 +197,7 @@ public class GameModeManager : MonoBehaviour
         if (catSortPanel == null) Debug.LogError("CatSortPanel not assigned!");
         if (catSortStartButton == null) Debug.LogError("CatSortStartButton not assigned!");
 
+        if (undoButton == null) Debug.LogError("UndoButton not assigned!");
         ConfigureButtons();
 
         survivalPanel?.SetActive(false);
@@ -328,6 +330,11 @@ public class GameModeManager : MonoBehaviour
         if (catSortStartButton != null)
         {
             catSortStartButton.onClick.AddListener(StartCatSortMode);
+        }
+        if (undoButton != null)
+        {
+            undoButton.onClick.RemoveAllListeners();
+            undoButton.onClick.AddListener(() => catSortMode?.UndoMove());
         }
         if (closeSettingsButton != null)
         {
