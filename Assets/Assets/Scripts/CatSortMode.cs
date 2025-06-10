@@ -95,9 +95,19 @@ public class CatSortMode : MonoBehaviour
     }
     private Vector3 CalculateShelfPosition(int index, Shelf.ShelfSide side, float screenWidth, float shelfHeight, float shelfOffset)
     {
-        int clampedIndex = Mathf.Clamp(index, 0, 4);
         float x = side == Shelf.ShelfSide.Left ? -screenWidth / 2 + shelfOffset : screenWidth / 2 - shelfOffset;
-        float y = clampedIndex * shelfHeight;
+
+        // Determine vertical offset so shelves alternate around the centre:
+        // 0 -> 0, 1 -> +h, 2 -> -h, 3 -> +2h, 4 -> -2h, ...
+        float y;
+        if (index == 0) y = 0f;
+        else
+        {
+            int step = (index + 1) / 2;
+            float sign = (index % 2 == 1) ? 1f : -1f;
+            y = sign * step * shelfHeight;
+        }
+
         return new Vector3(x, y, 0);
     }
 
