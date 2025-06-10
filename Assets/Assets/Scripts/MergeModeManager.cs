@@ -1155,6 +1155,13 @@ public class MergeModeManager : MonoBehaviour
         Debug.Log("EndGame: Field fully cleared");
     }
 
+    public void RestartLevel()
+    {
+        EndGame();
+        InitializeMergeMode();
+        ResetLevelCounts();    // if level counts should reset
+    }
+
     public void RestoreMergeModeState()
     {
         if (gridSize == Vector2Int.zero || grid == null || visualGrid == null)
