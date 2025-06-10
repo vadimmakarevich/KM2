@@ -27,7 +27,11 @@ public class FloorCollision : MonoBehaviour
                 continue;
             }
 
-            float objectBottomY = obj.transform.position.y + collider.bounds.min.y;
+            // collider.bounds.min.y already gives the world position of the bottom
+            // of the collider, so adding obj.transform.position.y results in an
+            // incorrect value. Use bounds.min.y directly to check against the
+            // floor position.
+            float objectBottomY = collider.bounds.min.y;
 
             if (objectBottomY >= floorY)
             {
