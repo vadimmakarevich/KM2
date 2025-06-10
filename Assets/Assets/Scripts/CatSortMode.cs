@@ -216,14 +216,28 @@ public class CatSortMode : MonoBehaviour
         if (sourceShelf == null) return;
 
         List<Cat> selectedCats = sourceShelf.cats.FindAll(c => c.isSelected);
-        if (selectedCats.Count == 0) return;
+        int selectedCount = selectedCats.Count;
+        if (selectedCount == 0) return;
 
-        int targetType = targetShelf.cats.Count > 0 ? targetShelf.cats[0].type : -1;
-        if (targetShelf.IsFull || (targetType != -1 && targetType != selectedCats[0].type))
+        // Check capacity of the target shelf
+        if (targetShelf.cats.Count + selectedCount > 4)
         {
             audioVibrationManager?.Vibrate();
             StartCoroutine(FlashError(targetShelf));
             return;
+        }
+
+        // Ensure all cats on the target shelf are of the same type and match the selected cats
+        if (targetShelf.cats.Count > 0)
+        {
+            int targetType = targetShelf.cats[0].type;
+            bool sameType = targetShelf.cats.TrueForAll(c => c.type == targetType);
+            if (!sameType || targetType != selectedCats[0].type)
+            {
+                audioVibrationManager?.Vibrate();
+                StartCoroutine(FlashError(targetShelf));
+                return;
+            }
         }
 
         StartCoroutine(MoveCatsAnimation(sourceShelf, targetShelf, selectedCats));
