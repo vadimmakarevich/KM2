@@ -77,14 +77,18 @@ public class CatSortMode : MonoBehaviour
         {
             Shelf shelf = new Shelf { side = Shelf.ShelfSide.Left };
             Vector3 pos = CalculateShelfPosition(i, Shelf.ShelfSide.Left, screenWidth, shelfHeight, shelfOffset);
-            shelf.shelfTransform = Instantiate(shelfPrefab, pos, Quaternion.identity).transform;
+            GameObject shelfObj = Instantiate(shelfPrefab, pos, Quaternion.identity);
+            shelfObj.transform.localScale = shelfPrefab.transform.localScale;
+            shelf.shelfTransform = shelfObj.transform;
             shelves.Add(shelf);
         }
         for (int i = 0; i < rightShelves; i++)
         {
             Shelf shelf = new Shelf { side = Shelf.ShelfSide.Right };
             Vector3 pos = CalculateShelfPosition(i, Shelf.ShelfSide.Right, screenWidth, shelfHeight, shelfOffset);
-            shelf.shelfTransform = Instantiate(shelfPrefab, pos, Quaternion.identity).transform;
+            GameObject shelfObj = Instantiate(shelfPrefab, pos, Quaternion.identity);
+            shelfObj.transform.localScale = shelfPrefab.transform.localScale;
+            shelf.shelfTransform = shelfObj.transform;
             shelves.Add(shelf);
         }
         Debug.Log($"Initialized {shelves.Count} shelves");
@@ -313,6 +317,7 @@ public class CatSortMode : MonoBehaviour
             for (int i = 0; i < 4; i++)
             {
                 GameObject catObj = Instantiate(catPrefab, targetShelf.shelfTransform.position + Vector3.right * (i - 1.5f) * 0.5f, Quaternion.identity);
+                catObj.transform.localScale = catPrefab.transform.localScale;
                 Cat cat = new Cat
                 {
                     type = 0, // Îäèí òèï êîòà äëÿ ïðîñòîòû
@@ -331,6 +336,7 @@ public class CatSortMode : MonoBehaviour
                 for (int i = 0; i < catCount; i++)
                 {
                     GameObject catObj = Instantiate(catPrefab, shelf.shelfTransform.position + Vector3.right * (i - catCount / 2) * 0.5f, Quaternion.identity);
+                    catObj.transform.localScale = catPrefab.transform.localScale;
                     Cat cat = new Cat
                     {
                         type = Random.Range(0, 12),
