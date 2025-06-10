@@ -1,0 +1,7 @@
+{
+  "shelves": [
+    {"side": "Left", "cats": [0,0,0,0]},
+    {"side": "Left", "cats": []},
+    {"side": "Right", "cats": []}
+  ]
+}
