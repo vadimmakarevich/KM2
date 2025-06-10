@@ -269,8 +269,11 @@ public class CatSortMode : MonoBehaviour
 
     private IEnumerator MoveCatsAnimation(Shelf sourceShelf, Shelf targetShelf, List<Cat> cats)
     {
-        Vector3 startPos = sourceShelf.shelfTransform.position;
-        Vector3 endPos = targetShelf.shelfTransform.position;
+        float shelfHeight = sourceShelf.shelfTransform.GetComponent<SpriteRenderer>().bounds.size.y;
+        float catHeight = catPrefab.GetComponent<SpriteRenderer>().bounds.size.y;
+        float yOffset = shelfHeight / 2f + catHeight / 2f;
+        Vector3 startPos = sourceShelf.shelfTransform.position + Vector3.up * yOffset;
+        Vector3 endPos = targetShelf.shelfTransform.position + Vector3.up * yOffset;
         float duration = 0.5f;
         float elapsed = 0f;
 
@@ -296,7 +299,7 @@ public class CatSortMode : MonoBehaviour
         // Âîçâðàùåíèå ê îáû÷íîìó ñïðàéòó
         for (int i = 0; i < cats.Count; i++)
         {
-            cats[i].transform.position = targetShelf.shelfTransform.position + Vector3.right * (i - cats.Count / 2) * 0.5f;
+            cats[i].transform.position = targetShelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - cats.Count / 2f) * 0.5f;
             cats[i].spriteRenderer.sprite = catSprites[cats[i].type * 2]; // type_0, type_1, etc.
         }
     }
@@ -324,9 +327,13 @@ public class CatSortMode : MonoBehaviour
         if (levelIndex == 0) // Ïåðâûé óðîâåíü (ó÷åáíûé)
         {
             Shelf targetShelf = shelves[0]; // Èñïîëüçóåì ïåðâóþ ïîëêó
+            float shelfHeight = targetShelf.shelfTransform.GetComponent<SpriteRenderer>().bounds.size.y;
+            float catHeight = catPrefab.GetComponent<SpriteRenderer>().bounds.size.y;
+            float yOffset = shelfHeight / 2f + catHeight / 2f;
             for (int i = 0; i < 4; i++)
             {
-                GameObject catObj = Instantiate(catPrefab, targetShelf.shelfTransform.position + Vector3.right * (i - 1.5f) * 0.5f, Quaternion.identity);
+                Vector3 pos = targetShelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - 1.5f) * 0.5f;
+                GameObject catObj = Instantiate(catPrefab, pos, Quaternion.identity);
                 catObj.transform.localScale = catPrefab.transform.localScale;
                 Cat cat = new Cat
                 {
@@ -342,10 +349,14 @@ public class CatSortMode : MonoBehaviour
         {
             foreach (var shelf in shelves)
             {
+                float shelfHeight = shelf.shelfTransform.GetComponent<SpriteRenderer>().bounds.size.y;
+                float catHeight = catPrefab.GetComponent<SpriteRenderer>().bounds.size.y;
+                float yOffset = shelfHeight / 2f + catHeight / 2f;
                 int catCount = Random.Range(1, 5); // Îò 1 äî 4 êîòîâ íà ïîëêó
                 for (int i = 0; i < catCount; i++)
                 {
-                    GameObject catObj = Instantiate(catPrefab, shelf.shelfTransform.position + Vector3.right * (i - catCount / 2) * 0.5f, Quaternion.identity);
+                    Vector3 pos = shelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - catCount / 2f) * 0.5f;
+                    GameObject catObj = Instantiate(catPrefab, pos, Quaternion.identity);
                     catObj.transform.localScale = catPrefab.transform.localScale;
                     Cat cat = new Cat
                     {
