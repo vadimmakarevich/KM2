@@ -66,8 +66,6 @@ public class CatSortMode : MonoBehaviour
 
     private void InitializeShelves()
     {
-        int leftShelves = 2; // 2 ïîëêè ñëåâà
-        int rightShelves = 1; // 1 ïîëêà ñïðàâà
 
         float screenWidth = Camera.main.orthographicSize * 2 * Camera.main.aspect;
         float shelfHeight = 1f;
@@ -76,17 +74,27 @@ public class CatSortMode : MonoBehaviour
         for (int i = 0; i < leftShelves; i++)
         {
             Shelf shelf = new Shelf { side = Shelf.ShelfSide.Left };
-            shelf.shelfTransform = Instantiate(shelfPrefab, new Vector3(-screenWidth / 2 + shelfOffset, i * shelfHeight, 0), Quaternion.identity).transform;
+            Vector3 pos = CalculateShelfPosition(i, Shelf.ShelfSide.Left, screenWidth, shelfHeight, shelfOffset);
+            shelf.shelfTransform = Instantiate(shelfPrefab, pos, Quaternion.identity).transform;
             shelves.Add(shelf);
         }
         for (int i = 0; i < rightShelves; i++)
         {
             Shelf shelf = new Shelf { side = Shelf.ShelfSide.Right };
-            shelf.shelfTransform = Instantiate(shelfPrefab, new Vector3(screenWidth / 2 - shelfOffset, i * shelfHeight, 0), Quaternion.identity).transform;
+            Vector3 pos = CalculateShelfPosition(i, Shelf.ShelfSide.Right, screenWidth, shelfHeight, shelfOffset);
+            shelf.shelfTransform = Instantiate(shelfPrefab, pos, Quaternion.identity).transform;
             shelves.Add(shelf);
         }
         Debug.Log($"Initialized {shelves.Count} shelves");
     }
+    private Vector3 CalculateShelfPosition(int index, Shelf.ShelfSide side, float screenWidth, float shelfHeight, float shelfOffset)
+    {
+        int clampedIndex = Mathf.Clamp(index, 0, 4);
+        float x = side == Shelf.ShelfSide.Left ? -screenWidth / 2 + shelfOffset : screenWidth / 2 - shelfOffset;
+        float y = clampedIndex * shelfHeight;
+        return new Vector3(x, y, 0);
+    }
+
 
     private Shelf GetShelfAtPosition(Vector2 pos)
     {
