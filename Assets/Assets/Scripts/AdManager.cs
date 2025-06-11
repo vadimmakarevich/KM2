@@ -98,6 +98,7 @@ public class AdManager : MonoBehaviour, IUnityAdsInitializationListener, IUnityA
     {
         Debug.LogError($"Ошибка показа рекламы {placementId}: {error} - {message}");
         LoadInterstitialAd(); // Пробуем загрузить снова
+        Time.timeScale = 1f; // Возобновляем игру, если реклама не была показана
         // Если реклама не показалась, вызываем делегат, чтобы не блокировать анимацию
         onAdCompleted?.Invoke();
     }
