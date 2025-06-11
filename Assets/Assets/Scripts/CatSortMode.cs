@@ -7,7 +7,8 @@ using System.Linq;
 
 public class CatSortMode : MonoBehaviour
 {
-    [SerializeField] private GameObject shelfPrefab;
+    [SerializeField] private GameObject leftShelfPrefab;
+    [SerializeField] private GameObject rightShelfPrefab;
     [SerializeField] private GameObject catPrefab;
     [SerializeField] private Sprite[] catSprites; // Ìàññèâ ñïðàéòîâ: [type_0, type_0_jump, type_1, type_1_jump, ...]
     [SerializeField] private GameObject levelCompletePanel;
@@ -15,6 +16,7 @@ public class CatSortMode : MonoBehaviour
     [SerializeField] private Button exitButton;
     [SerializeField] private int leftShelves = 2;
     [SerializeField] private int rightShelves = 2;
+    [SerializeField] private float shelfOffset = 0.5f;
     private List<Shelf> shelves = new List<Shelf>();
     private AudioVibrationManager audioVibrationManager;
 
@@ -50,18 +52,23 @@ public class CatSortMode : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Shelf targetShelf = GetShelfAtPosition(worldPos);
-            if (targetShelf != null)
+            Shelf clickedShelf = GetShelfAtPosition(worldPos);
+
+            if (clickedShelf != null)
             {
-                SelectCats(targetShelf, worldPos);
+                Shelf selectedShelf = shelves.Find(s => s.cats.Any(c => c.isSelected));
+                if (selectedShelf != null && selectedShelf != clickedShelf)
+                {
+                    MoveSelectedCats(clickedShelf);
+                }
+                else
+                {
+                    SelectCats(clickedShelf, worldPos);
+                }
             }
             else
             {
-                Shelf moveTarget = shelves.Find(s => Vector2.Distance(worldPos, s.shelfTransform.position) < 0.5f);
-                if (moveTarget != null && shelves.Any(s => s.cats.Any(c => c.isSelected)))
-                {
-                    MoveSelectedCats(moveTarget);
-                }
+                ClearSelection();
             }
         }
     }
@@ -71,14 +78,13 @@ public class CatSortMode : MonoBehaviour
 
         float screenWidth = Camera.main.orthographicSize * 2 * Camera.main.aspect;
         float shelfHeight = 1f;
-        float shelfOffset = 0.5f;
 
         for (int i = 0; i < leftShelves; i++)
         {
             Shelf shelf = new Shelf { side = Shelf.ShelfSide.Left };
             Vector3 pos = CalculateShelfPosition(i, Shelf.ShelfSide.Left, screenWidth, shelfHeight, shelfOffset);
-            GameObject shelfObj = Instantiate(shelfPrefab, pos, Quaternion.identity);
-            shelfObj.transform.localScale = shelfPrefab.transform.localScale;
+            GameObject shelfObj = Instantiate(leftShelfPrefab, pos, Quaternion.identity);
+            shelfObj.transform.localScale = leftShelfPrefab.transform.localScale;
             shelf.shelfTransform = shelfObj.transform;
             shelves.Add(shelf);
         }
@@ -86,8 +92,8 @@ public class CatSortMode : MonoBehaviour
         {
             Shelf shelf = new Shelf { side = Shelf.ShelfSide.Right };
             Vector3 pos = CalculateShelfPosition(i, Shelf.ShelfSide.Right, screenWidth, shelfHeight, shelfOffset);
-            GameObject shelfObj = Instantiate(shelfPrefab, pos, Quaternion.identity);
-            shelfObj.transform.localScale = shelfPrefab.transform.localScale;
+            GameObject shelfObj = Instantiate(rightShelfPrefab, pos, Quaternion.identity);
+            shelfObj.transform.localScale = rightShelfPrefab.transform.localScale;
             shelf.shelfTransform = shelfObj.transform;
             shelves.Add(shelf);
         }
@@ -423,6 +429,7 @@ public class CatSortMode : MonoBehaviour
     public void Initialize()
     {
         Debug.Log("CatSortMode Initialize called");
+        EndGame();
         InitializeShelves();
         GenerateLevel();
     }
