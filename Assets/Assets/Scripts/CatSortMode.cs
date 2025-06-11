@@ -341,6 +341,18 @@ public class CatSortMode : MonoBehaviour
         return true;
     }
 
+    private void CheckAllShelvesEmpty()
+    {
+        if (AreAllShelvesEmpty())
+        {
+            if (GameModeManager.Instance != null)
+            {
+                GameModeManager.Instance.SetGameActive(false);
+            }
+            ShowLevelCompletePanel(shelves.Count * 4);
+        }
+    }
+
     private IEnumerator AssembleShelf(Shelf shelf)
     {
         float upDuration = 0.2f;
@@ -376,10 +388,7 @@ public class CatSortMode : MonoBehaviour
         }
         shelf.cats.Clear();
 
-        if (AreAllShelvesEmpty())
-        {
-            ShowLevelCompletePanel(shelves.Count * 4);
-        }
+        CheckAllShelvesEmpty();
     }
 
     public void GenerateLevel()

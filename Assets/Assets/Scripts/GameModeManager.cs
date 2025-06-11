@@ -134,6 +134,11 @@ public class GameModeManager : MonoBehaviour
 
     private bool isGameActive = false;
 
+    public void SetGameActive(bool active)
+    {
+        isGameActive = active;
+    }
+
     private int pendingStartScore;
     private int pendingFinalScore;
     private int pendingStar2Threshold;
