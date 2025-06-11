@@ -42,6 +42,8 @@ public class CatSortMode : MonoBehaviour
     void Start()
     {
         Debug.Log("CatSortMode Start called");
+        if (shelfCompletionChecker == null)
+            Debug.LogWarning("ShelfCompletionChecker reference is missing.");
         audioVibrationManager = AudioVibrationManager.Instance;
         InitializeShelves();
         GenerateLevel();
