@@ -345,10 +345,6 @@ public class CatSortMode : MonoBehaviour
     {
         if (AreAllShelvesEmpty())
         {
-            if (GameModeManager.Instance != null)
-            {
-                GameModeManager.Instance.SetGameActive(false);
-            }
             ShowLevelCompletePanel(shelves.Count * 4);
         }
     }
