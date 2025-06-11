@@ -965,8 +965,8 @@ public class GameModeManager : MonoBehaviour
         }
         else if (currentMode == GameMode.CatSort && catSortMode != null)
         {
-            int newLevelIndex = PlayerPrefs.GetInt("CatSortLevel", 0) + 1;
-            PlayerPrefs.SetInt("CatSortLevel", newLevelIndex);
+            int newLevelIndex = PlayerPrefs.GetInt("CatSortModeLevel", 0) + 1;
+            PlayerPrefs.SetInt("CatSortModeLevel", newLevelIndex);
             PlayerPrefs.Save();
             Debug.Log($"ShowLevelCompletePanel: CatSort progress saved. Next level index set to {newLevelIndex}");
         }

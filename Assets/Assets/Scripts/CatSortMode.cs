@@ -14,11 +14,26 @@ public class CatSortMode : MonoBehaviour
     [SerializeField] private GameObject levelCompletePanel;
     [SerializeField] private Button nextLevelButton;
     [SerializeField] private Button exitButton;
-    [SerializeField] private int leftShelves = 2;
-    [SerializeField] private int rightShelves = 2;
     [SerializeField] private float shelfOffset = 0.5f;
     private List<Shelf> shelves = new List<Shelf>();
     private AudioVibrationManager audioVibrationManager;
+
+    [System.Serializable]
+    public struct ShelfDefinition
+    {
+        public int[] catTypes;
+    }
+
+    [System.Serializable]
+    public struct LevelDefinition
+    {
+        public int leftShelves;
+        public int rightShelves;
+        public ShelfDefinition[] shelves;
+    }
+
+    [SerializeField] private LevelDefinition[] levels;
+    private int currentLevelIndex = 0;
 
     [System.Serializable]
     public class Cat
@@ -43,6 +58,8 @@ public class CatSortMode : MonoBehaviour
     {
         Debug.Log("CatSortMode Start called");
         audioVibrationManager = AudioVibrationManager.Instance;
+        currentLevelIndex = PlayerPrefs.GetInt("CatSortModeLevel", 0);
+        if (currentLevelIndex >= levels.Length) currentLevelIndex = 0;
         InitializeShelves();
         GenerateLevel();
     }
@@ -79,7 +96,10 @@ public class CatSortMode : MonoBehaviour
         float screenWidth = Camera.main.orthographicSize * 2 * Camera.main.aspect;
         float shelfHeight = 1f;
 
-        for (int i = 0; i < leftShelves; i++)
+        int left = levels[currentLevelIndex].leftShelves;
+        int right = levels[currentLevelIndex].rightShelves;
+
+        for (int i = 0; i < left; i++)
         {
             Shelf shelf = new Shelf { side = Shelf.ShelfSide.Left };
             Vector3 pos = CalculateShelfPosition(i, Shelf.ShelfSide.Left, screenWidth, shelfHeight, shelfOffset);
@@ -88,7 +108,7 @@ public class CatSortMode : MonoBehaviour
             shelf.shelfTransform = shelfObj.transform;
             shelves.Add(shelf);
         }
-        for (int i = 0; i < rightShelves; i++)
+        for (int i = 0; i < right; i++)
         {
             Shelf shelf = new Shelf { side = Shelf.ShelfSide.Right };
             Vector3 pos = CalculateShelfPosition(i, Shelf.ShelfSide.Right, screenWidth, shelfHeight, shelfOffset);
@@ -328,55 +348,33 @@ public class CatSortMode : MonoBehaviour
             shelf.cats.Clear();
         }
 
-        // Äëÿ ïåðâîãî óðîâíÿ: ãàðàíòèðóåì 4 êîòà
-        int levelIndex = PlayerPrefs.GetInt("CatSortLevel", 0); // Ïîëó÷àåì òåêóùèé óðîâåíü (ïî óìîë÷àíèþ 0)
-        if (levelIndex == 0) // Ïåðâûé óðîâåíü (ó÷åáíûé)
+        LevelDefinition level = levels[currentLevelIndex];
+        for (int s = 0; s < shelves.Count && s < level.shelves.Length; s++)
         {
-            Shelf targetShelf = shelves[0]; // Èñïîëüçóåì ïåðâóþ ïîëêó
+            Shelf targetShelf = shelves[s];
+            int[] cats = level.shelves[s].catTypes;
             float shelfHeight = targetShelf.shelfTransform.GetComponent<SpriteRenderer>().bounds.size.y;
             float catHeight = catPrefab.GetComponent<SpriteRenderer>().bounds.size.y;
             float yOffset = shelfHeight / 2f + catHeight / 2f;
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < cats.Length && i < 4; i++)
             {
-                Vector3 pos = targetShelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - 1.5f) * 0.5f;
+                Vector3 pos = targetShelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - cats.Length / 2f) * 0.5f;
                 GameObject catObj = Instantiate(catPrefab, pos, Quaternion.identity);
                 catObj.transform.localScale = catPrefab.transform.localScale;
                 Cat cat = new Cat
                 {
-                    type = 0, // Îäèí òèï êîòà äëÿ ïðîñòîòû
+                    type = cats[i],
                     transform = catObj.transform,
                     spriteRenderer = catObj.GetComponent<SpriteRenderer>()
                 };
-                cat.spriteRenderer.sprite = catSprites[cat.type * 2]; // Óñòàíîâêà íà÷àëüíîãî ñïðàéòà
+                cat.spriteRenderer.sprite = catSprites[cat.type * 2];
                 targetShelf.cats.Add(cat);
             }
         }
-        else // Äëÿ ïîñëåäóþùèõ óðîâíåé: ñëó÷àéíàÿ ãåíåðàöèÿ
-        {
-            foreach (var shelf in shelves)
-            {
-                float shelfHeight = shelf.shelfTransform.GetComponent<SpriteRenderer>().bounds.size.y;
-                float catHeight = catPrefab.GetComponent<SpriteRenderer>().bounds.size.y;
-                float yOffset = shelfHeight / 2f + catHeight / 2f;
-                int catCount = Random.Range(1, 5); // Îò 1 äî 4 êîòîâ íà ïîëêó
-                for (int i = 0; i < catCount; i++)
-                {
-                    Vector3 pos = shelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - catCount / 2f) * 0.5f;
-                    GameObject catObj = Instantiate(catPrefab, pos, Quaternion.identity);
-                    catObj.transform.localScale = catPrefab.transform.localScale;
-                    Cat cat = new Cat
-                    {
-                        type = Random.Range(0, 12),
-                        transform = catObj.transform,
-                        spriteRenderer = catObj.GetComponent<SpriteRenderer>()
-                    };
-                    cat.spriteRenderer.sprite = catSprites[cat.type * 2]; // Óñòàíîâêà íà÷àëüíîãî ñïðàéòà
-                    shelf.cats.Add(cat);
-                }
-            }
-        }
+
         Debug.Log($"Generated level with {shelves.Sum(s => s.cats.Count)} cats");
     }
+
 
     private void CheckLevelCompletion()
     {
@@ -398,8 +396,9 @@ public class CatSortMode : MonoBehaviour
 
     private void ShowLevelCompletePanel(int rawScore)
     {
-        int current = PlayerPrefs.GetInt("CatSortLevel", 0);
-        PlayerPrefs.SetInt("CatSortLevel", current + 1);
+        currentLevelIndex++;
+        if (currentLevelIndex >= levels.Length) currentLevelIndex = 0;
+        PlayerPrefs.SetInt("CatSortModeLevel", currentLevelIndex);
         PlayerPrefs.Save();
 
         Time.timeScale = 0f;
