@@ -15,6 +15,19 @@ public class CatSortMode : MonoBehaviour
     [SerializeField] private Button exitButton;
     [SerializeField] private int leftShelves = 2;
     [SerializeField] private int rightShelves = 2;
+
+    [System.Serializable]
+    public class LevelConfig
+    {
+        public int leftShelves = 2;
+        public int rightShelves = 2;
+        public List<int> catTypes = new List<int>();
+    }
+
+    [SerializeField] private LevelConfig[] levelConfigs;
+
+    private LevelConfig currentConfig;
+    private int currentLevelIndex;
     private List<Shelf> shelves = new List<Shelf>();
     private AudioVibrationManager audioVibrationManager;
 
@@ -41,6 +54,26 @@ public class CatSortMode : MonoBehaviour
     {
         Debug.Log("CatSortMode Start called");
         audioVibrationManager = AudioVibrationManager.Instance;
+        currentLevelIndex = PlayerPrefs.GetInt("CatSortLevel", 0);
+        if (levelConfigs != null && levelConfigs.Length > currentLevelIndex)
+        {
+            currentConfig = levelConfigs[currentLevelIndex];
+        }
+        else
+        {
+            currentConfig = new LevelConfig { leftShelves = leftShelves, rightShelves = rightShelves };
+            if (currentConfig.catTypes.Count == 0)
+            {
+                for (int i = 0; i < catSprites.Length / 2; i++)
+                {
+                    currentConfig.catTypes.Add(i);
+                }
+            }
+        }
+
+        leftShelves = currentConfig.leftShelves;
+        rightShelves = currentConfig.rightShelves;
+
         InitializeShelves();
         GenerateLevel();
     }
@@ -264,6 +297,8 @@ public class CatSortMode : MonoBehaviour
             cat.isSelected = false;
         }
         UpdateVisualSelection();
+        CheckForCompletedShelf(targetShelf);
+        CheckForCompletedShelf(sourceShelf);
         CheckLevelCompletion();
     }
 
@@ -315,6 +350,50 @@ public class CatSortMode : MonoBehaviour
         }
     }
 
+    private void CheckForCompletedShelf(Shelf shelf)
+    {
+        if (shelf.cats.Count == 4 && shelf.cats.All(c => c.type == shelf.cats[0].type))
+        {
+            StartCoroutine(CollectShelf(shelf));
+        }
+    }
+
+    private IEnumerator CollectShelf(Shelf shelf)
+    {
+        float enlargeDuration = 0.1f;
+        float shrinkDuration = 0.15f;
+        float t = 0f;
+        while (t < enlargeDuration)
+        {
+            t += Time.deltaTime;
+            float scale = Mathf.Lerp(1f, 1.2f, t / enlargeDuration);
+            foreach (var cat in shelf.cats)
+            {
+                cat.transform.localScale = Vector3.one * scale;
+            }
+            yield return null;
+        }
+
+        t = 0f;
+        while (t < shrinkDuration)
+        {
+            t += Time.deltaTime;
+            float scale = Mathf.Lerp(1.2f, 0f, t / shrinkDuration);
+            foreach (var cat in shelf.cats)
+            {
+                cat.transform.localScale = Vector3.one * scale;
+            }
+            yield return null;
+        }
+
+        foreach (var cat in shelf.cats)
+        {
+            Destroy(cat.transform.gameObject);
+        }
+        shelf.cats.Clear();
+        CheckLevelCompletion();
+    }
+
     public void GenerateLevel()
     {
         foreach (var shelf in shelves)
@@ -322,71 +401,59 @@ public class CatSortMode : MonoBehaviour
             shelf.cats.Clear();
         }
 
-        // Для первого уровня: гарантируем 4 кота
-        int levelIndex = PlayerPrefs.GetInt("CatSortLevel", 0); // Получаем текущий уровень (по умолчанию 0)
-        if (levelIndex == 0) // Первый уровень (учебный)
+        List<int> availableTypes = currentConfig != null && currentConfig.catTypes.Count > 0
+            ? currentConfig.catTypes
+            : Enumerable.Range(0, catSprites.Length / 2).ToList();
+
+        foreach (var shelf in shelves)
         {
-            Shelf targetShelf = shelves[0]; // Используем первую полку
-            float shelfHeight = targetShelf.shelfTransform.GetComponent<SpriteRenderer>().bounds.size.y;
+            float shelfHeight = shelf.shelfTransform.GetComponent<SpriteRenderer>().bounds.size.y;
             float catHeight = catPrefab.GetComponent<SpriteRenderer>().bounds.size.y;
             float yOffset = shelfHeight / 2f + catHeight / 2f;
-            for (int i = 0; i < 4; i++)
+            int catCount = Random.Range(1, 5);
+
+            List<int> types = new List<int>();
+            for (int i = 0; i < catCount; i++)
             {
-                Vector3 pos = targetShelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - 1.5f) * 0.5f;
+                types.Add(availableTypes[Random.Range(0, availableTypes.Count)]);
+            }
+
+            if (catCount == 4 && types.Distinct().Count() == 1 && availableTypes.Count > 1)
+            {
+                int changeIndex = Random.Range(0, 4);
+                int newType = types[0];
+                while (newType == types[0])
+                {
+                    newType = availableTypes[Random.Range(0, availableTypes.Count)];
+                }
+                types[changeIndex] = newType;
+            }
+
+            for (int i = 0; i < catCount; i++)
+            {
+                Vector3 pos = shelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - catCount / 2f) * 0.5f;
                 GameObject catObj = Instantiate(catPrefab, pos, Quaternion.identity);
                 catObj.transform.localScale = catPrefab.transform.localScale;
                 Cat cat = new Cat
                 {
-                    type = 0, // Один тип кота для простоты
+                    type = types[i],
                     transform = catObj.transform,
                     spriteRenderer = catObj.GetComponent<SpriteRenderer>()
                 };
-                cat.spriteRenderer.sprite = catSprites[cat.type * 2]; // Установка начального спрайта
-                targetShelf.cats.Add(cat);
+                cat.spriteRenderer.sprite = catSprites[cat.type * 2];
+                shelf.cats.Add(cat);
             }
         }
-        else // Для последующих уровней: случайная генерация
-        {
-            foreach (var shelf in shelves)
-            {
-                float shelfHeight = shelf.shelfTransform.GetComponent<SpriteRenderer>().bounds.size.y;
-                float catHeight = catPrefab.GetComponent<SpriteRenderer>().bounds.size.y;
-                float yOffset = shelfHeight / 2f + catHeight / 2f;
-                int catCount = Random.Range(1, 5); // От 1 до 4 котов на полку
-                for (int i = 0; i < catCount; i++)
-                {
-                    Vector3 pos = shelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - catCount / 2f) * 0.5f;
-                    GameObject catObj = Instantiate(catPrefab, pos, Quaternion.identity);
-                    catObj.transform.localScale = catPrefab.transform.localScale;
-                    Cat cat = new Cat
-                    {
-                        type = Random.Range(0, 12),
-                        transform = catObj.transform,
-                        spriteRenderer = catObj.GetComponent<SpriteRenderer>()
-                    };
-                    cat.spriteRenderer.sprite = catSprites[cat.type * 2]; // Установка начального спрайта
-                    shelf.cats.Add(cat);
-                }
-            }
-        }
+
         Debug.Log($"Generated level with {shelves.Sum(s => s.cats.Count)} cats");
     }
 
     private void CheckLevelCompletion()
     {
-        bool isComplete = true;
-        foreach (var shelf in shelves)
-        {
-            if (shelf.cats.Count != 4 || shelf.cats.Select(c => c.type).Distinct().Count() != 1)
-            {
-                isComplete = false;
-                break;
-            }
-        }
-
+        bool isComplete = shelves.All(s => s.cats.Count == 0);
         if (isComplete)
         {
-            ShowLevelCompletePanel(4 * shelves.Count); // Простая логика счета (4 кота на полку * количество полок)
+            ShowLevelCompletePanel(0);
         }
     }
 
@@ -404,7 +471,6 @@ public class CatSortMode : MonoBehaviour
             Time.timeScale = 1f;
             levelCompletePanel.SetActive(false);
             ResetLevel();
-            GenerateLevel();
         });
 
         exitButton.onClick.AddListener(() =>
@@ -423,6 +489,26 @@ public class CatSortMode : MonoBehaviour
     public void Initialize()
     {
         Debug.Log("CatSortMode Initialize called");
+        currentLevelIndex = PlayerPrefs.GetInt("CatSortLevel", 0);
+        if (levelConfigs != null && levelConfigs.Length > currentLevelIndex)
+        {
+            currentConfig = levelConfigs[currentLevelIndex];
+        }
+        else
+        {
+            currentConfig = new LevelConfig { leftShelves = leftShelves, rightShelves = rightShelves };
+            if (currentConfig.catTypes.Count == 0)
+            {
+                for (int i = 0; i < catSprites.Length / 2; i++)
+                {
+                    currentConfig.catTypes.Add(i);
+                }
+            }
+        }
+
+        leftShelves = currentConfig.leftShelves;
+        rightShelves = currentConfig.rightShelves;
+
         InitializeShelves();
         GenerateLevel();
     }
@@ -454,6 +540,13 @@ public class CatSortMode : MonoBehaviour
     public void ResetLevel()
     {
         EndGame();
+        currentLevelIndex = PlayerPrefs.GetInt("CatSortLevel", 0);
+        if (levelConfigs != null && levelConfigs.Length > currentLevelIndex)
+        {
+            currentConfig = levelConfigs[currentLevelIndex];
+        }
+        leftShelves = currentConfig.leftShelves;
+        rightShelves = currentConfig.rightShelves;
         InitializeShelves();
         GenerateLevel();
     }
