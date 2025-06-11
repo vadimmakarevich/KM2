@@ -134,7 +134,10 @@ public class CatSortMode : MonoBehaviour
         int clickedIndex = -1;
         for (int i = 0; i < shelf.cats.Count; i++)
         {
-            if (Vector2.Distance(clickPos, shelf.cats[i].transform.position) < 0.3f)
+            Vector2 center = shelf.cats[i].transform.position +
+                             Vector3.up * shelf.cats[i].spriteRenderer.bounds.size.y / 2f;
+
+            if (Vector2.Distance(clickPos, center) < 0.3f)
             {
                 clickedIndex = i;
                 break;
