@@ -270,7 +270,7 @@ public class CatSortMode : MonoBehaviour
             cat.isSelected = false;
         }
         UpdateVisualSelection();
-        CheckLevelCompletion();
+        TryAssembleShelf(targetShelf);
     }
 
     private IEnumerator MoveCatsAnimation(Shelf sourceShelf, Shelf targetShelf, List<Cat> cats)
@@ -318,6 +318,64 @@ public class CatSortMode : MonoBehaviour
             sr.color = Color.red;
             yield return new WaitForSeconds(0.2f);
             sr.color = Color.white;
+        }
+    }
+
+    private void TryAssembleShelf(Shelf shelf)
+    {
+        if (shelf.cats.Count == 4 && shelf.cats.All(c => c.type == shelf.cats[0].type))
+        {
+            StartCoroutine(AssembleShelf(shelf));
+        }
+    }
+
+    private bool AreAllShelvesEmpty()
+    {
+        foreach (var s in shelves)
+        {
+            if (s.cats.Count > 0) return false;
+        }
+        return true;
+    }
+
+    private IEnumerator AssembleShelf(Shelf shelf)
+    {
+        float upDuration = 0.2f;
+        float downDuration = 0.2f;
+
+        float elapsed = 0f;
+        while (elapsed < upDuration)
+        {
+            elapsed += Time.deltaTime;
+            float scale = Mathf.Lerp(1f, 1.2f, elapsed / upDuration);
+            foreach (var cat in shelf.cats)
+            {
+                if (cat.transform != null) cat.transform.localScale = Vector3.one * scale;
+            }
+            yield return null;
+        }
+
+        elapsed = 0f;
+        while (elapsed < downDuration)
+        {
+            elapsed += Time.deltaTime;
+            float scale = Mathf.Lerp(1.2f, 0f, elapsed / downDuration);
+            foreach (var cat in shelf.cats)
+            {
+                if (cat.transform != null) cat.transform.localScale = Vector3.one * scale;
+            }
+            yield return null;
+        }
+
+        foreach (var cat in shelf.cats)
+        {
+            if (cat.transform != null) Destroy(cat.transform.gameObject);
+        }
+        shelf.cats.Clear();
+
+        if (AreAllShelvesEmpty())
+        {
+            ShowLevelCompletePanel(shelves.Count * 4);
         }
     }
 
@@ -372,6 +430,12 @@ public class CatSortMode : MonoBehaviour
                     };
                     cat.spriteRenderer.sprite = catSprites[cat.type * 2]; // Óñòàíîâêà íà÷àëüíîãî ñïðàéòà
                     shelf.cats.Add(cat);
+                }
+                if (catCount == 4 && shelf.cats.All(c => c.type == shelf.cats[0].type))
+                {
+                    int newType = (shelf.cats[0].type + 1) % 12;
+                    shelf.cats[0].type = newType;
+                    shelf.cats[0].spriteRenderer.sprite = catSprites[newType * 2];
                 }
             }
         }
