@@ -271,6 +271,7 @@ public class CatSortMode : MonoBehaviour
         }
         UpdateVisualSelection();
         CheckLevelCompletion();
+        CheckAllShelvesEmpty();
     }
 
     private IEnumerator MoveCatsAnimation(Shelf sourceShelf, Shelf targetShelf, List<Cat> cats)
@@ -393,6 +394,43 @@ public class CatSortMode : MonoBehaviour
         if (isComplete)
         {
             ShowLevelCompletePanel(4 * shelves.Count); // Ïðîñòàÿ ëîãèêà ñ÷åòà (4 êîòà íà ïîëêó * êîëè÷åñòâî ïîëîê)
+        }
+    }
+
+    private void CheckAllShelvesEmpty()
+    {
+        bool allEmpty = shelves.All(s => s.cats.Count == 0);
+        if (allEmpty)
+        {
+            Time.timeScale = 0f;
+            foreach (var shelf in shelves)
+            {
+                if (shelf.shelfTransform != null)
+                    shelf.shelfTransform.gameObject.SetActive(false);
+            }
+
+            if (GameModeManager.Instance != null)
+            {
+                if (GameModeManager.Instance.catSortPanel != null)
+                    GameModeManager.Instance.catSortPanel.SetActive(true);
+            }
+
+            nextLevelButton.onClick.RemoveAllListeners();
+            nextLevelButton.onClick.AddListener(() =>
+            {
+                Time.timeScale = 1f;
+                if (GameModeManager.Instance != null && GameModeManager.Instance.catSortPanel != null)
+                    GameModeManager.Instance.catSortPanel.SetActive(false);
+                ResetLevel();
+                GenerateLevel();
+            });
+
+            exitButton.onClick.RemoveAllListeners();
+            exitButton.onClick.AddListener(() =>
+            {
+                Time.timeScale = 1f;
+                SceneManager.LoadScene("ModeSelectScene");
+            });
         }
     }
 
