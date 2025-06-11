@@ -9,7 +9,7 @@ public class CatSortMode : MonoBehaviour
 {
     [SerializeField] private GameObject shelfPrefab;
     [SerializeField] private GameObject catPrefab;
-    [SerializeField] private Sprite[] catSprites; // Ìàññèâ ñïðàéòîâ: [type_0, type_0_jump, type_1, type_1_jump, ...]
+    [SerializeField] private Sprite[] catSprites; // Массив спрайтов: [type_0, type_0_jump, type_1, type_1_jump, ...]
     [SerializeField] private GameObject levelCompletePanel;
     [SerializeField] private Button nextLevelButton;
     [SerializeField] private Button exitButton;
@@ -21,7 +21,7 @@ public class CatSortMode : MonoBehaviour
     [System.Serializable]
     public class Cat
     {
-        public int type; // 0 to 11 äëÿ 12 òèïîâ êîòîâ
+        public int type; // 0 to 11 для 12 типов котов
         public bool isSelected;
         public Transform transform;
         public SpriteRenderer spriteRenderer;
@@ -277,7 +277,7 @@ public class CatSortMode : MonoBehaviour
         float duration = 0.5f;
         float elapsed = 0f;
 
-        // Ïåðåêëþ÷åíèå íà ñïðàéò ïðûæêà
+        // Переключение на спрайт прыжка
         foreach (var cat in cats)
         {
             cat.spriteRenderer.sprite = catSprites[cat.type * 2 + 1]; // type_0_jump, type_1_jump, etc.
@@ -287,7 +287,7 @@ public class CatSortMode : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-            float height = Mathf.Sin(t * Mathf.PI) * 1f; // Ïàðàáîëè÷åñêàÿ òðàåêòîðèÿ ïðûæêà
+            float height = Mathf.Sin(t * Mathf.PI) * 1f; // Параболическая траектория прыжка
             Vector3 midPos = Vector3.Lerp(startPos, endPos, t) + Vector3.up * height;
             foreach (var cat in cats)
             {
@@ -296,7 +296,7 @@ public class CatSortMode : MonoBehaviour
             yield return null;
         }
 
-        // Âîçâðàùåíèå ê îáû÷íîìó ñïðàéòó
+        // Возвращение к обычному спрайту
         for (int i = 0; i < cats.Count; i++)
         {
             cats[i].transform.position = targetShelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - cats.Count / 2f) * 0.5f;
@@ -322,11 +322,11 @@ public class CatSortMode : MonoBehaviour
             shelf.cats.Clear();
         }
 
-        // Äëÿ ïåðâîãî óðîâíÿ: ãàðàíòèðóåì 4 êîòà
-        int levelIndex = PlayerPrefs.GetInt("CatSortLevel", 0); // Ïîëó÷àåì òåêóùèé óðîâåíü (ïî óìîë÷àíèþ 0)
-        if (levelIndex == 0) // Ïåðâûé óðîâåíü (ó÷åáíûé)
+        // Для первого уровня: гарантируем 4 кота
+        int levelIndex = PlayerPrefs.GetInt("CatSortLevel", 0); // Получаем текущий уровень (по умолчанию 0)
+        if (levelIndex == 0) // Первый уровень (учебный)
         {
-            Shelf targetShelf = shelves[0]; // Èñïîëüçóåì ïåðâóþ ïîëêó
+            Shelf targetShelf = shelves[0]; // Используем первую полку
             float shelfHeight = targetShelf.shelfTransform.GetComponent<SpriteRenderer>().bounds.size.y;
             float catHeight = catPrefab.GetComponent<SpriteRenderer>().bounds.size.y;
             float yOffset = shelfHeight / 2f + catHeight / 2f;
@@ -337,22 +337,22 @@ public class CatSortMode : MonoBehaviour
                 catObj.transform.localScale = catPrefab.transform.localScale;
                 Cat cat = new Cat
                 {
-                    type = 0, // Îäèí òèï êîòà äëÿ ïðîñòîòû
+                    type = 0, // Один тип кота для простоты
                     transform = catObj.transform,
                     spriteRenderer = catObj.GetComponent<SpriteRenderer>()
                 };
-                cat.spriteRenderer.sprite = catSprites[cat.type * 2]; // Óñòàíîâêà íà÷àëüíîãî ñïðàéòà
+                cat.spriteRenderer.sprite = catSprites[cat.type * 2]; // Установка начального спрайта
                 targetShelf.cats.Add(cat);
             }
         }
-        else // Äëÿ ïîñëåäóþùèõ óðîâíåé: ñëó÷àéíàÿ ãåíåðàöèÿ
+        else // Для последующих уровней: случайная генерация
         {
             foreach (var shelf in shelves)
             {
                 float shelfHeight = shelf.shelfTransform.GetComponent<SpriteRenderer>().bounds.size.y;
                 float catHeight = catPrefab.GetComponent<SpriteRenderer>().bounds.size.y;
                 float yOffset = shelfHeight / 2f + catHeight / 2f;
-                int catCount = Random.Range(1, 5); // Îò 1 äî 4 êîòîâ íà ïîëêó
+                int catCount = Random.Range(1, 5); // От 1 до 4 котов на полку
                 for (int i = 0; i < catCount; i++)
                 {
                     Vector3 pos = shelf.shelfTransform.position + Vector3.up * yOffset + Vector3.right * (i - catCount / 2f) * 0.5f;
@@ -364,7 +364,7 @@ public class CatSortMode : MonoBehaviour
                         transform = catObj.transform,
                         spriteRenderer = catObj.GetComponent<SpriteRenderer>()
                     };
-                    cat.spriteRenderer.sprite = catSprites[cat.type * 2]; // Óñòàíîâêà íà÷àëüíîãî ñïðàéòà
+                    cat.spriteRenderer.sprite = catSprites[cat.type * 2]; // Установка начального спрайта
                     shelf.cats.Add(cat);
                 }
             }
@@ -386,7 +386,7 @@ public class CatSortMode : MonoBehaviour
 
         if (isComplete)
         {
-            ShowLevelCompletePanel(4 * shelves.Count); // Ïðîñòàÿ ëîãèêà ñ÷åòà (4 êîòà íà ïîëêó * êîëè÷åñòâî ïîëîê)
+            ShowLevelCompletePanel(4 * shelves.Count); // Простая логика счета (4 кота на полку * количество полок)
         }
     }
 
@@ -416,7 +416,7 @@ public class CatSortMode : MonoBehaviour
 
         if (GameModeManager.Instance != null)
         {
-            GameModeManager.Instance.ShowLevelCompletePanel(rawScore, 0, 0); // Ïåðåäàåì 0 äëÿ îïòèìàëüíûõ è ôàêòè÷åñêèõ õîäîâ êàê çàãëóøêè
+            GameModeManager.Instance.ShowLevelCompletePanel(rawScore, 0, 0); // Передаем 0 для оптимальных и фактических ходов как заглушки
         }
     }
 
