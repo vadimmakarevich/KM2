@@ -392,6 +392,10 @@ public class CatSortMode : MonoBehaviour
 
     private void ShowLevelCompletePanel(int rawScore)
     {
+        int current = PlayerPrefs.GetInt("CatSortLevel", 0);
+        PlayerPrefs.SetInt("CatSortLevel", current + 1);
+        PlayerPrefs.Save();
+
         Time.timeScale = 0f;
         levelCompletePanel.SetActive(true);
 
@@ -401,9 +405,6 @@ public class CatSortMode : MonoBehaviour
             levelCompletePanel.SetActive(false);
             ResetLevel();
             GenerateLevel();
-            int newLevelIndex = PlayerPrefs.GetInt("CatSortLevel", 0) + 1;
-            PlayerPrefs.SetInt("CatSortLevel", newLevelIndex);
-            PlayerPrefs.Save();
         });
 
         exitButton.onClick.AddListener(() =>
