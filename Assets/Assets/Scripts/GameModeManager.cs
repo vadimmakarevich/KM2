@@ -247,7 +247,7 @@ public class GameModeManager : MonoBehaviour
             Debug.LogWarning("SettingsPanel has no CanvasGroup component!");
         }
 
-        int savedMode = PlayerPrefs.GetInt("CurrentMode", -1);
+        int savedMode = ProgressManager.LoadInt("CurrentMode", -1);
         if (savedMode != -1)
         {
             currentMode = (GameMode)savedMode;
@@ -411,7 +411,7 @@ public class GameModeManager : MonoBehaviour
         if (currentMode == GameMode.MergeMode) mergeModeManager?.EndGame();
         else if (currentMode == GameMode.CatSort) catSortMode?.EndGame();
         currentMode = GameMode.Survival;
-        PlayerPrefs.SetInt("CurrentMode", (int)GameMode.Survival);
+        ProgressManager.SaveInt("CurrentMode", (int)GameMode.Survival);
         gameModePanel?.SetActive(false);
         pointerController?.ResetQueue();
         StartGame();
@@ -424,7 +424,7 @@ public class GameModeManager : MonoBehaviour
         if (currentMode == GameMode.MergeMode) mergeModeManager?.EndGame();
         else if (currentMode == GameMode.CatSort) catSortMode?.EndGame();
         currentMode = GameMode.Timer;
-        PlayerPrefs.SetInt("CurrentMode", (int)GameMode.Timer);
+        ProgressManager.SaveInt("CurrentMode", (int)GameMode.Timer);
         gameModePanel?.SetActive(false);
         pointerController?.ResetQueue();
         StartGame();
@@ -437,7 +437,7 @@ public class GameModeManager : MonoBehaviour
         if (currentMode == GameMode.MergeMode) mergeModeManager?.EndGame();
         else if (currentMode == GameMode.CatSort) catSortMode?.EndGame();
         currentMode = GameMode.AutoSpawn;
-        PlayerPrefs.SetInt("CurrentMode", (int)GameMode.AutoSpawn);
+        ProgressManager.SaveInt("CurrentMode", (int)GameMode.AutoSpawn);
         gameModePanel?.SetActive(false);
         pointerController?.ResetQueue();
         StartGame();
@@ -450,7 +450,7 @@ public class GameModeManager : MonoBehaviour
         if (currentMode == GameMode.MergeMode) mergeModeManager?.EndGame();
         else if (currentMode == GameMode.CatSort) catSortMode?.EndGame();
         currentMode = GameMode.MergeMode;
-        PlayerPrefs.SetInt("CurrentMode", (int)GameMode.MergeMode);
+        ProgressManager.SaveInt("CurrentMode", (int)GameMode.MergeMode);
         gameModePanel?.SetActive(false);
         StartGame();
     }
@@ -462,7 +462,7 @@ public class GameModeManager : MonoBehaviour
         if (currentMode == GameMode.MergeMode) mergeModeManager?.EndGame();
         else if (currentMode == GameMode.CatSort) catSortMode?.EndGame();
         currentMode = GameMode.CatSort;
-        PlayerPrefs.SetInt("CurrentMode", (int)GameMode.CatSort);
+        ProgressManager.SaveInt("CurrentMode", (int)GameMode.CatSort);
         gameModePanel?.SetActive(false);
         StartGame();
     }
@@ -964,15 +964,13 @@ public class GameModeManager : MonoBehaviour
         {
             int newLevelIndex = mergeModeManager.CurrentLevelIndex + 1;
             if (newLevelIndex >= mergeModeManager.Levels.Length) newLevelIndex = 0;
-            PlayerPrefs.SetInt("MergeModeLevel", newLevelIndex);
-            PlayerPrefs.Save();
+            ProgressManager.SaveInt("MergeModeLevel", newLevelIndex);
             Debug.Log($"ShowLevelCompletePanel: Progress saved. Next level index set to {newLevelIndex}");
         }
         else if (currentMode == GameMode.CatSort && catSortMode != null)
         {
-            int newLevelIndex = PlayerPrefs.GetInt("CatSortLevel", 0) + 1;
-            PlayerPrefs.SetInt("CatSortLevel", newLevelIndex);
-            PlayerPrefs.Save();
+            int newLevelIndex = ProgressManager.LoadInt("CatSortLevel", 0) + 1;
+            ProgressManager.SaveInt("CatSortLevel", newLevelIndex);
             Debug.Log($"ShowLevelCompletePanel: CatSort progress saved. Next level index set to {newLevelIndex}");
         }
 
@@ -1022,7 +1020,7 @@ public class GameModeManager : MonoBehaviour
         levelCompleteScoreText.text = $"Score: {minScoreForOneStar}";
 
         Debug.Log("Attempting to show interstitial ad in ShowLevelCompletePanel.");
-        if (AdManager.Instance != null && PlayerPrefs.GetInt("AdsDisabled", 0) == 0)
+        if (AdManager.Instance != null && ProgressManager.LoadInt("AdsDisabled", 0) == 0)
         {
             AdManager.Instance.SetOnAdCompletedHandler(() =>
             {
@@ -1259,7 +1257,7 @@ public class GameModeManager : MonoBehaviour
         {
             Debug.Log($"GameOver in {currentMode} Mode: Showing interstitial ad.");
         }
-        if (AdManager.Instance != null && PlayerPrefs.GetInt("AdsDisabled", 0) == 0)
+        if (AdManager.Instance != null && ProgressManager.LoadInt("AdsDisabled", 0) == 0)
         {
             AdManager.Instance.ShowInterstitialAd();
         }
@@ -1463,7 +1461,7 @@ public class GameModeManager : MonoBehaviour
     {
         Debug.Log("FinalConfirmExit called.");
         Debug.Log("Attempting to show interstitial ad in FinalConfirmExit.");
-        if (AdManager.Instance != null && PlayerPrefs.GetInt("AdsDisabled", 0) == 0)
+        if (AdManager.Instance != null && ProgressManager.LoadInt("AdsDisabled", 0) == 0)
         {
             AdManager.Instance.ShowInterstitialAd();
         }

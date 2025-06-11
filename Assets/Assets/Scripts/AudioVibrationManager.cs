@@ -68,12 +68,12 @@ public class AudioVibrationManager : MonoBehaviour
         musicSource.loop = true;
         musicSource.ignoreListenerPause = true;
 
-        isMusicEnabled = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
-        isSFXEnabled = PlayerPrefs.GetInt("SFXEnabled", 1) == 1;
-        isVibrationEnabled = PlayerPrefs.GetInt("VibrationEnabled", 0) == 1;
+        isMusicEnabled = ProgressManager.LoadInt("MusicEnabled", 1) == 1;
+        isSFXEnabled = ProgressManager.LoadInt("SFXEnabled", 1) == 1;
+        isVibrationEnabled = ProgressManager.LoadInt("VibrationEnabled", 0) == 1;
 
-        musicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
-        sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 1f);
+        musicVolume = ProgressManager.LoadFloat("MusicVolume", 0.5f);
+        sfxVolume = ProgressManager.LoadFloat("SFXVolume", 1f);
 
         musicSource.volume = isMusicEnabled ? musicVolume : 0f;
         sfxSource.volume = isSFXEnabled ? sfxVolume : 0f;
@@ -281,8 +281,7 @@ public class AudioVibrationManager : MonoBehaviour
     public void SetMusicEnabled(bool enabled)
     {
         isMusicEnabled = enabled;
-        PlayerPrefs.SetInt("MusicEnabled", enabled ? 1 : 0);
-        PlayerPrefs.Save();
+        ProgressManager.SaveBool("MusicEnabled", enabled);
         musicSource.volume = enabled ? musicVolume : 0f;
         if (!enabled && musicSource.isPlaying)
         {
@@ -300,8 +299,7 @@ public class AudioVibrationManager : MonoBehaviour
     public void SetSoundEnabled(bool enabled)
     {
         isSFXEnabled = enabled;
-        PlayerPrefs.SetInt("SFXEnabled", enabled ? 1 : 0);
-        PlayerPrefs.Save();
+        ProgressManager.SaveBool("SFXEnabled", enabled);
         sfxSource.volume = enabled ? sfxVolume : 0f;
         #if UNITY_EDITOR
         Debug.Log($"SetSoundEnabled: {enabled}, SFX volume: {sfxSource.volume}");
@@ -311,8 +309,7 @@ public class AudioVibrationManager : MonoBehaviour
     public void SetVibrationEnabled(bool enabled)
     {
         isVibrationEnabled = enabled;
-        PlayerPrefs.SetInt("VibrationEnabled", enabled ? 1 : 0);
-        PlayerPrefs.Save();
+        ProgressManager.SaveBool("VibrationEnabled", enabled);
         #if UNITY_EDITOR
         Debug.Log($"SetVibrationEnabled: {enabled}");
         #endif
@@ -326,8 +323,7 @@ public class AudioVibrationManager : MonoBehaviour
     {
         musicVolume = Mathf.Clamp01(volume);
         musicSource.volume = isMusicEnabled ? musicVolume : 0f;
-        PlayerPrefs.SetFloat("MusicVolume", musicVolume);
-        PlayerPrefs.Save();
+        ProgressManager.SaveFloat("MusicVolume", musicVolume);
         #if UNITY_EDITOR
         Debug.Log($"SetMusicVolume: {musicVolume}, Music volume: {musicSource.volume}");
         #endif
@@ -337,8 +333,7 @@ public class AudioVibrationManager : MonoBehaviour
     {
         sfxVolume = Mathf.Clamp01(volume);
         sfxSource.volume = isSFXEnabled ? sfxVolume : 0f;
-        PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
-        PlayerPrefs.Save();
+        ProgressManager.SaveFloat("SFXVolume", sfxVolume);
         #if UNITY_EDITOR
         Debug.Log($"SetSFXVolume: {sfxVolume}, SFX volume: {sfxSource.volume}");
         #endif

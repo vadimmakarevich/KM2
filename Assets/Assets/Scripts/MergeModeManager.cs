@@ -48,22 +48,6 @@ public class MergeModeManager : MonoBehaviour
     [Header("Level Progression Settings")]
     [SerializeField] private int movesToIncreaseLevel = 10;
 
-    [System.Serializable]
-    public struct LevelGoal
-    {
-        public int targetLevel;
-        public int targetCount;
-        public bool isMoveLimit;
-    }
-
-    [System.Serializable]
-    public struct LevelDefinition
-    {
-        public LevelGoal[] goals;
-        public bool fillFieldWithAllLevels;
-        public int moveLimit;
-        public float[] spawnWeights;
-    }
 
     [Header("Level Settings")]
     [SerializeField] private LevelDefinition[] levels;
@@ -135,11 +119,11 @@ public class MergeModeManager : MonoBehaviour
 
     void Start()
     {
-        currentLevelIndex = PlayerPrefs.GetInt("MergeModeLevel", 0);
+        currentLevelIndex = ProgressManager.LoadInt("MergeModeLevel", 0);
         if (currentLevelIndex >= levels.Length)
         {
             currentLevelIndex = 0;
-            PlayerPrefs.SetInt("MergeModeLevel", currentLevelIndex);
+            ProgressManager.SaveInt("MergeModeLevel", currentLevelIndex);
         }
 
         foreach (var goal in levels[currentLevelIndex].goals)
@@ -774,8 +758,7 @@ public class MergeModeManager : MonoBehaviour
         {
             currentLevelIndex = 0;
         }
-        PlayerPrefs.SetInt("MergeModeLevel", currentLevelIndex);
-        PlayerPrefs.Save();
+        ProgressManager.SaveInt("MergeModeLevel", currentLevelIndex);
 
         levelCounts.Clear();
         foreach (var goal in levels[currentLevelIndex].goals)

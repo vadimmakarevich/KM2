@@ -84,9 +84,9 @@ public class LeaderboardManager : MonoBehaviour
     private List<int> GetScores(string key)
     {
         List<int> scores = new List<int>();
-        if (PlayerPrefs.HasKey(key))
+        if (ProgressManager.HasKey(key))
         {
-            string scoresString = PlayerPrefs.GetString(key);
+            string scoresString = ProgressManager.LoadString(key);
             Debug.Log($"Загружены данные из PlayerPrefs для ключа {key}: {scoresString}");
             if (string.IsNullOrEmpty(scoresString))
             {
@@ -124,8 +124,7 @@ public class LeaderboardManager : MonoBehaviour
     {
         scores = scores.Where(s => s > 0).ToList();
         string scoresString = string.Join(",", scores);
-        PlayerPrefs.SetString(key, scoresString);
-        PlayerPrefs.Save();
+        ProgressManager.SaveString(key, scoresString);
         Debug.Log($"Сохранены результаты для ключа {key}: {scoresString}");
     }
 }
