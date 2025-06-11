@@ -399,7 +399,7 @@ public class CatSortMode : MonoBehaviour
         }
 
         // Äëÿ ïåðâîãî óðîâíÿ: ãàðàíòèðóåì 4 êîòà
-        int levelIndex = PlayerPrefs.GetInt("CatSortLevel", 0); // Ïîëó÷àåì òåêóùèé óðîâåíü (ïî óìîë÷àíèþ 0)
+        int levelIndex = ProgressManager.LoadInt("CatSortLevel", 0); // Ïîëó÷àåì òåêóùèé óðîâåíü (ïî óìîë÷àíèþ 0)
         if (levelIndex == 0) // Ïåðâûé óðîâåíü (ó÷åáíûé)
         {
             Shelf targetShelf = shelves[0]; // Èñïîëüçóåì ïåðâóþ ïîëêó
@@ -474,9 +474,8 @@ public class CatSortMode : MonoBehaviour
 
     private void ShowLevelCompletePanel(int rawScore)
     {
-        int current = PlayerPrefs.GetInt("CatSortLevel", 0);
-        PlayerPrefs.SetInt("CatSortLevel", current + 1);
-        PlayerPrefs.Save();
+        int current = ProgressManager.LoadInt("CatSortLevel", 0);
+        ProgressManager.SaveInt("CatSortLevel", current + 1);
 
         Time.timeScale = 0f;
         levelCompletePanel.SetActive(true);
