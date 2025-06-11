@@ -5,7 +5,8 @@ public class FloorCollision : MonoBehaviour
 {
     private GameModeManager gameModeManager;
     private float floorY;
-    private Dictionary<int, float> timeAtOrAboveFloor = new Dictionary<int, float>();
+    private readonly Dictionary<int, float> timeAtOrAboveFloor = new Dictionary<int, float>();
+    private readonly HashSet<GameObject> trackedObjects = new HashSet<GameObject>();
     private const float timeThreshold = 3f;
 
     void Start()
@@ -16,10 +17,15 @@ public class FloorCollision : MonoBehaviour
 
     void Update()
     {
-        GameObject[] objects = GameObject.FindGameObjectsWithTag("GameObject");
-
-        foreach (GameObject obj in objects)
+        // Iterate over a copy to allow modifications during the loop
+        foreach (GameObject obj in trackedObjects.ToArray())
         {
+            if (obj == null)
+            {
+                trackedObjects.Remove(obj);
+                continue;
+            }
+
             int objectId = obj.GetInstanceID();
             Collider2D collider = obj.GetComponent<Collider2D>();
             if (collider == null)
@@ -28,9 +34,7 @@ public class FloorCollision : MonoBehaviour
             }
 
             // collider.bounds.min.y already gives the world position of the bottom
-            // of the collider, so adding obj.transform.position.y results in an
-            // incorrect value. Use bounds.min.y directly to check against the
-            // floor position.
+            // of the collider.
             float objectBottomY = collider.bounds.min.y;
 
             if (objectBottomY >= floorY)
@@ -49,17 +53,49 @@ public class FloorCollision : MonoBehaviour
                             gameModeManager.GameOver("FloorCollision");
                         }
                         timeAtOrAboveFloor.Clear();
+                        trackedObjects.Clear();
                         return;
                     }
                 }
             }
-            else
+            else if (timeAtOrAboveFloor.ContainsKey(objectId))
             {
-                if (timeAtOrAboveFloor.ContainsKey(objectId))
-                {
-                    timeAtOrAboveFloor.Remove(objectId);
-                }
+                timeAtOrAboveFloor.Remove(objectId);
             }
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("GameObject"))
+        {
+            trackedObjects.Add(collision.gameObject);
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("GameObject"))
+        {
+            trackedObjects.Remove(collision.gameObject);
+            timeAtOrAboveFloor.Remove(collision.gameObject.GetInstanceID());
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("GameObject"))
+        {
+            trackedObjects.Add(other.gameObject);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("GameObject"))
+        {
+            trackedObjects.Remove(other.gameObject);
+            timeAtOrAboveFloor.Remove(other.gameObject.GetInstanceID());
         }
     }
 }
