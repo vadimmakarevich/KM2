@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +9,7 @@ public class CatSortMode : MonoBehaviour
     [SerializeField] private GameObject rightShelfPrefab;
     [SerializeField] private GameObject catPrefab;
     [SerializeField] private Sprite[] catSprites; // Ìàññèâ ñïðàéòîâ: [type_0, type_0_jump, type_1, type_1_jump, ...]
-    [SerializeField] private GameObject levelCompletePanel;
-    [SerializeField] private Button nextLevelButton;
-    [SerializeField] private Button exitButton;
+    [SerializeField] private ShelfCompletionChecker shelfCompletionChecker;
     [SerializeField] private int leftShelves = 2;
     [SerializeField] private int rightShelves = 2;
     [SerializeField] private float shelfOffset = 0.5f;
@@ -274,6 +270,7 @@ public class CatSortMode : MonoBehaviour
         }
         UpdateVisualSelection();
         TryAssembleShelf(targetShelf);
+        shelfCompletionChecker?.CheckAllShelvesEmpty(shelves);
     }
 
     private IEnumerator MoveCatsAnimation(Shelf sourceShelf, Shelf targetShelf, List<Cat> cats)
@@ -332,26 +329,6 @@ public class CatSortMode : MonoBehaviour
         }
     }
 
-    private bool AreAllShelvesEmpty()
-    {
-        foreach (var s in shelves)
-        {
-            if (s.cats.Count > 0) return false;
-        }
-        return true;
-    }
-
-    private void CheckAllShelvesEmpty()
-    {
-        if (AreAllShelvesEmpty())
-        {
-            if (GameModeManager.Instance != null)
-            {
-                GameModeManager.Instance.SetGameActive(false);
-            }
-            ShowLevelCompletePanel(shelves.Count * 4);
-        }
-    }
 
     private IEnumerator AssembleShelf(Shelf shelf)
     {
@@ -388,7 +365,7 @@ public class CatSortMode : MonoBehaviour
         }
         shelf.cats.Clear();
 
-        CheckAllShelvesEmpty();
+        shelfCompletionChecker?.CheckAllShelvesEmpty(shelves);
     }
 
     public void GenerateLevel()
@@ -454,53 +431,6 @@ public class CatSortMode : MonoBehaviour
         Debug.Log($"Generated level with {shelves.Sum(s => s.cats.Count)} cats");
     }
 
-    private void CheckLevelCompletion()
-    {
-        bool isComplete = true;
-        foreach (var shelf in shelves)
-        {
-            if (shelf.cats.Count != 4 || shelf.cats.Select(c => c.type).Distinct().Count() != 1)
-            {
-                isComplete = false;
-                break;
-            }
-        }
-
-        if (isComplete)
-        {
-            ShowLevelCompletePanel(4 * shelves.Count); // Ïðîñòàÿ ëîãèêà ñ÷åòà (4 êîòà íà ïîëêó * êîëè÷åñòâî ïîëîê)
-        }
-    }
-
-    private void ShowLevelCompletePanel(int rawScore)
-    {
-        int current = PlayerPrefs.GetInt("CatSortLevel", 0);
-        PlayerPrefs.SetInt("CatSortLevel", current + 1);
-        PlayerPrefs.Save();
-
-        Time.timeScale = 0f;
-        levelCompletePanel.SetActive(true);
-
-        nextLevelButton.onClick.AddListener(() =>
-        {
-            Time.timeScale = 1f;
-            levelCompletePanel.SetActive(false);
-            ResetLevel();
-            GenerateLevel();
-        });
-
-        exitButton.onClick.AddListener(() =>
-        {
-            Time.timeScale = 1f;
-            levelCompletePanel.SetActive(false);
-            SceneManager.LoadScene("ModeSelectScene");
-        });
-
-        if (GameModeManager.Instance != null)
-        {
-            GameModeManager.Instance.ShowLevelCompletePanel(rawScore, 0, 0); // Ïåðåäàåì 0 äëÿ îïòèìàëüíûõ è ôàêòè÷åñêèõ õîäîâ êàê çàãëóøêè
-        }
-    }
 
     public void Initialize()
     {
